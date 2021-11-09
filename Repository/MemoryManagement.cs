@@ -1,29 +1,48 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Repository
 {
     public class MemoryManagement
     {
         private Counter _counter;
+        private int _fileOffset;
+        private string _buffer;
 
-        private string _filePath;
-
-
-        public MemoryManagement(Counter counter, string filePath)
+        public MemoryManagement(Counter counter)
         {
             _counter = counter;
-            _filePath = filePath;
+            _buffer = "";
+            _fileOffset = 0;
         }
 
-        public double ReadNextRecord(TextReader reader)
+        public double ReadNextRecord(Stream source)
         {
-                var line = reader.ReadLine();
-                var numbersAsStrings = line.Split(' ').AsEnumerable();
-                var numbers = numbersAsStrings.Select(int.Parse);
-                var geometricMean = numbers.GeometricMean();
-                return geometricMean;
+            var readNextBytes = true;
+            byte[] buffer = new byte[10];
+
+            var numbersAsString = _buffer;
+            
+            while (readNextBytes)
+            {
+                var readBytes = source.Read(buffer, _fileOffset, buffer.Length);
+                numbersAsString += Encoding.Default.GetString(buffer);
+                _fileOffset += readBytes;
+                
+                
+                
+                if (!numbersAsString.Contains('\n')) continue;
+                
+                _buffer = numbersAsString[numbersAsString.IndexOf('\n')..];
+                readNextBytes = false;
+            }
+
+            var numbersSplit = numbersAsString.Split(' ');
+            var numbers = numbersSplit.Select(n => int.Parse(n));
+            return numbers.GeometricMean();
+
         }
     }
 }

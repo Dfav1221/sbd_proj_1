@@ -14,19 +14,24 @@ namespace Sbd_proj1
         {
             var path = args[0];
             var counter = new Counter();
-            var test = new MemoryManagement(counter, "");
-            using TextReader reader = File.OpenText("input.txt");
-            try
+            var test = new MemoryManagement(counter);
+            var files = Directory.GetFiles(path);
+            foreach (var file in files)
             {
-                while (true)
+                using Stream source = File.OpenRead(file);
+                try
                 {
-                    var t = test.ReadNextRecord(reader);
-                    Console.WriteLine(t);
+                    while (true)
+                    {
+                        var t = test.ReadNextRecord(source);
+                        Console.WriteLine(t);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("EOF");
+
+                catch (Exception ex)
+                {
+                    Console.WriteLine("EOF");
+                }
             }
         }
     }

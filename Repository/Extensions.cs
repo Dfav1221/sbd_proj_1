@@ -13,7 +13,7 @@ namespace Repository
             var enumerable = numbers as int[] ?? numbers.ToArray();
             enumerable.ToList().ForEach(n => product *= n);
             double size = enumerable.Length;
-            double root = 1 / size;
+            var root = 1 / size;
             return Math.Pow(product, root);
         }
     }

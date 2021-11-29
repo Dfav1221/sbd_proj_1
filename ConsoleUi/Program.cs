@@ -1,4 +1,7 @@
-﻿using Application;
+﻿using System.Reflection;
+using Application;
+using DataManagement;
+using Microsoft.Extensions.Configuration;
 
 namespace ConsoleUi;
 
@@ -10,32 +13,39 @@ public static class Program
     //      3 - read records from line, to files at second argument,
     public static void Main(string[] args)
     {
-        var arguments = args[0].Split(';');
-        string[] files = null;
-        if (arguments.Length < 2)
-            return;
-        switch (arguments[0])
+        
+        var config = new ConfigurationBuilder()
+            .AddJsonFile($"{Environment.CurrentDirectory}/../../../appsettings.json")
+            .Build();
+
+        var files = Directory.GetFiles(config["folderPath"]);
+
+        var numberCount = config
+            .GetSection("tapeSize")
+            .Get<int>();
+        
+        switch (config["selectedMode"])
         {
-            case "1":
-                files = Directory.GetFiles(arguments[1]);
+            case "files":
                 break;
-            case "2":
-                App.GenerateRecords(arguments[1], arguments[2]);
-                files = Directory.GetFiles(arguments[2]);
+            case "random":
+                App.GenerateRecords(numberCount, files.ToList());
                 break;
-            case "3":
-                App.ReadRecordsFromUser(arguments[1]);
+            case "console":
+                App.ReadRecordsFromUser(files.ToList());
                 break;
         }
-        
-        
 
-        
+
+
+        var statisticLogger = new StatisticLogger();
         Console.WriteLine("Records before sort");
         App.PrintAllRecords(files.ToList());
-        //app.Sort();
-        //Console.WriteLine("Records after sort");
-        //app.PrintAllRecords();
+        RecordDistributor.DistributeNumbers(new Repository(files.ToList()),files.ToList(),numberCount);
+        App.Sort(files.ToList(),statisticLogger);
+        Console.WriteLine("Records after sort");
+        App.PrintAllRecords(files.ToList());
+        App.PrintStatisticData(statisticLogger);
     }
 }
 

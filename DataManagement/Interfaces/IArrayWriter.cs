@@ -1,6 +1,9 @@
-﻿namespace DataManagement.Interfaces;
+﻿using DataManagement.Array;
 
-public class IArrayWriter
+namespace DataManagement.Interfaces;
+
+public interface IArrayWriter
 {
-    
+    void DeleteFirstSection(FileStream stream, int currentArrayOffset);
+    void WriteRecordAtEnd(Record record, FileStream writer);
 }

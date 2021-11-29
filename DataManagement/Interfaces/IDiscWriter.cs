@@ -2,5 +2,6 @@
 
 public interface IDiscWriter
 {
-    public void WriteRecord(Record record, string arrayPath, int arrayOffset);
+    void DeleteArraySection(int arrayNumber, int sectionSize);
+    void WriteRecordAtEnd(int saveArrayIndex, Record record);
 }

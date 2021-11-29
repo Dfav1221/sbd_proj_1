@@ -11,6 +11,7 @@ public class ArrayReader : IArrayReader
     private int _fileOffset;
     private int _readBytesCount;
     private string _buffer;
+    public int SectionSize { get; set; }
 
     public ArrayReader(string fileName)
     {
@@ -18,23 +19,22 @@ public class ArrayReader : IArrayReader
         _fileOffset = 0;
         _readBytesCount = 5;
         _buffer = "";
+        SectionSize = 1;
     }
+
 
     public Record ReadNextRecord(Stream fileStream)
     {
         var notEof = true;
-        var lengthOfFile = (int) fileStream.Length;
-        var buffer = new byte[512];
+        var buffer = new byte[100000];
         var numbersAsString = "";
         var startingOffset = _fileOffset;
+        
         while (!numbersAsString.Contains('\n') && notEof)
         {
-            notEof = fileStream.Read(buffer, _fileOffset, _readBytesCount) != 0;
-            _fileOffset += _readBytesCount;
-            numbersAsString = Encoding.Default.GetString(buffer);
+            (notEof, numbersAsString) = ReadNextBlock(buffer,fileStream);
         }
         
-        //numbersAsString = Regex.Match(_buffer + numbersAsString, @"[1-9 \n]+").Value;
         if (!notEof)
             return new Record
             {
@@ -45,15 +45,24 @@ public class ArrayReader : IArrayReader
                 Eof = true,
                 Numbers = null
             };
+        numbersAsString = string.Concat(numbersAsString
+            .Where(c => c == '\n' || char.IsDigit(c) || c == ' ')
+        );
         var splitExcessRecord = numbersAsString.Split('\n');
         var splitNumbers = Regex
-            .Split(_buffer + splitExcessRecord[0], @"[^1-9]").ToList();
-        splitNumbers = splitNumbers.Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
+            .Split(_buffer + splitExcessRecord[0], @"[^0-9]")
+            .ToList();
+        
+        splitNumbers = splitNumbers
+            .Where(s => !string.IsNullOrEmpty(s))
+            .ToList();
 
         _buffer = splitExcessRecord[1];
-        //var splitNumbers = numbersAsString.Split(' ');
         var numbers = new List<int>();
-        splitNumbers.ToList().ForEach(n => numbers.Add(int.Parse(n)));
+        
+        splitNumbers.ToList()
+            .ForEach(n => numbers.Add(int.Parse(n)));
+        
         return new Record
         {
             ArrayPath = _fileName,
@@ -77,16 +86,22 @@ public class ArrayReader : IArrayReader
         _readBytesCount = 5;
     }
 
-    private bool SkipUselessBytes(byte character)
+    public bool CheckIfEmpty(Stream fileStream)
     {
-        switch (character)
-        {
-            case (byte) '\n':
-            case (byte) ' ':
-                return true;
-            default:
-                return character is >= (byte) '0' and <= (byte) '9';
-        }
-        
+        var buffer = new byte[10];
+        return fileStream.Read(buffer, 0, 10) == 0;
+    }
+
+    public int GetOffsetSize()
+    {
+        return _fileOffset;
+    }
+
+    private (bool, string) ReadNextBlock(byte[] buffer, Stream fileStream)
+    {
+        var notEof = fileStream.Read(buffer, _fileOffset, _readBytesCount) != 0;
+        _fileOffset += _readBytesCount;
+        var numbersAsString = Encoding.Default.GetString(buffer);
+        return (notEof, numbersAsString);
     }
 }

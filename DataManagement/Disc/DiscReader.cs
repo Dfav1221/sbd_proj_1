@@ -1,4 +1,5 @@
-﻿using DataManagement.Array;
+﻿using Application;
+using DataManagement.Array;
 using DataManagement.Interfaces;
 
 namespace DataManagement.Disc;
@@ -9,27 +10,30 @@ public class DiscReader : IDiscReader
     private readonly List<IArrayReader> _arrays;
     private readonly List<string> _filePaths;
     private Stream _stream;
+
     public DiscReader(List<string> filePaths)
     {
         _filePaths = filePaths;
         _arrays = new List<IArrayReader>();
         filePaths.ForEach(file => _arrays.Add(new ArrayReader(file)));
         _currentArray = 0;
-        _stream = File.OpenRead(_filePaths[_currentArray]);
+        _stream = File.OpenRead(_filePaths[0]);
     }
 
     public Record ReadNextRecord()
     {
         var record = _arrays[_currentArray].ReadNextRecord(_stream);
-        if (!record.Eof) return record;
-        
+        if (!record.Eof)
+        {
+            return record;
+        }
+
         _arrays[_currentArray].Reset();
         _currentArray++;
         _stream.Dispose();
-        
+
         if (_currentArray >= _arrays.Count)
         {
-  
             return new Record
             {
                 ArrayPath = "",
@@ -40,7 +44,7 @@ public class DiscReader : IDiscReader
                 Eof = true
             };
         }
-        
+
         _stream = File.OpenRead(_filePaths[_currentArray]);
         return ReadNextRecord();
     }
@@ -50,5 +54,52 @@ public class DiscReader : IDiscReader
         var filePathIndex = _filePaths.IndexOf(arrayPath);
         using var stream = File.OpenRead(arrayPath);
         return _arrays[filePathIndex].ReadRecord(stream, arrayOffset);
+    }
+
+    public Section ReadSection(int fileIndex)
+    {
+        _stream.Dispose();
+        var section = new Section
+        {
+            Size = _arrays[fileIndex].SectionSize,
+            Records = new List<Record>()
+        };
+
+        using var stream = File.Open(_filePaths[fileIndex], FileMode.Open, FileAccess.ReadWrite);
+        for (var i = 0; i < section.Size; i++)
+        {
+            section
+                .Records
+                .Add(
+                    _arrays[fileIndex]
+                        .ReadNextRecord(stream)
+                );
+        }
+
+        section.CanReadMore = _arrays[fileIndex].CheckIfEmpty(stream);
+        stream.Dispose();
+        return section;
+    }
+
+    public void ResetArray(int fileIndex)
+    {
+        _arrays[fileIndex].Reset();
+    }
+
+    public bool IsArrayEmpty(int arrayNumber)
+    {
+        using var stream = File.OpenRead(_filePaths[arrayNumber]);
+        return _arrays[arrayNumber].CheckIfEmpty(stream);
+    }
+
+    public void SetSectionSize(int arrayIndex, int newSectionSize, int newSectionSizeInBytes)
+    {
+        if (_arrays[arrayIndex].SectionSize < newSectionSize)
+            _arrays[arrayIndex].SectionSize = newSectionSize;
+    }
+
+    public int GetArrayOffset(int arrayNumber)
+    {
+        return _arrays[arrayNumber].GetOffsetSize();
     }
 }

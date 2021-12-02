@@ -10,6 +10,7 @@ public class DiscReader : IDiscReader
     private readonly List<IArrayReader> _arrays;
     private readonly List<string> _filePaths;
     private Stream _stream;
+    public int BlancRecordsCount { get; set; } = 0;
 
     public DiscReader(List<string> filePaths)
     {
@@ -66,7 +67,7 @@ public class DiscReader : IDiscReader
         };
 
         using var stream = File.Open(_filePaths[fileIndex], FileMode.Open, FileAccess.ReadWrite);
-        for (var i = 0; i < section.Size; i++)
+        while(true)
         {
             section
                 .Records
@@ -74,8 +75,11 @@ public class DiscReader : IDiscReader
                     _arrays[fileIndex]
                         .ReadNextRecord(stream)
                 );
+            if (section.Records[^1].EoS)
+                break;
         }
 
+        section.Size = section.Records.Count;
         section.CanReadMore = _arrays[fileIndex].CheckIfEmpty(stream);
         stream.Dispose();
         return section;

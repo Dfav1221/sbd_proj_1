@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Application;
 using DataManagement;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,7 @@ public static class Program
     //      1 - read from files on given path at second argument
     //      2 - generate random records, number of them on second argument and path on third
     //      3 - read records from line, to files at second argument,
+                                                                                                                                                                                                                                                                             [SuppressMessage("ReSharper.DPA", "DPA0001: Memory allocation issues")]
     public static void Main(string[] args)
     {
         
@@ -41,8 +43,8 @@ public static class Program
         var statisticLogger = new StatisticLogger();
         Console.WriteLine("Records before sort");
         App.PrintAllRecords(files.ToList());
-        RecordDistributor.DistributeNumbers(new Repository(files.ToList()),files.ToList(),numberCount);
-        App.Sort(files.ToList(),statisticLogger);
+        var blancRecordsCount = RecordDistributor.DistributeNumbers(new Repository(files.ToList()),files.ToList(),numberCount);
+        App.Sort(files.ToList(),blancRecordsCount,statisticLogger);
         Console.WriteLine("Records after sort");
         App.PrintAllRecords(files.ToList());
         App.PrintStatisticData(statisticLogger);

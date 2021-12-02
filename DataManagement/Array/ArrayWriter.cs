@@ -24,13 +24,14 @@ public class ArrayWriter : IArrayWriter
         stream.Write(array, 0, array.Length);
     }
 
-    public void WriteRecordAtEnd(Record record, FileStream writer)
+    public void WriteRecordAtEnd(Record record, FileStream writer,bool lastInSeries = false)
     {
         var actualData = new byte[writer.Length];
         writer.Read(actualData, 0, (int)writer.Length);
         writer.SetLength(0);
         var writtenBytesLength = 0;
-        var data = actualData.Concat(Encoding.ASCII.GetBytes(string.Join(" ", record.Numbers)+'\n')).ToArray();
+        var endLine = lastInSeries ? ";\n" : "\n";
+        var data = actualData.Concat(Encoding.ASCII.GetBytes(string.Join(" ", record.Numbers)+endLine)).ToArray();
         var blockSize = 5;
 
         while (data.Length >= writtenBytesLength)

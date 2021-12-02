@@ -3,5 +3,5 @@
 public interface IDiscWriter
 {
     void DeleteArraySection(int arrayNumber, int sectionSize);
-    void WriteRecordAtEnd(int saveArrayIndex, Record record);
+    void WriteRecordAtEnd(int saveArrayIndex, Record record,bool lastInSeries = false);
 }

@@ -8,4 +8,5 @@ public record Record
     public int RecordSize { get; set; }
     public List<int>? Numbers { get; set; }
     public bool Eof { get; set; } = false;
+    public bool EoS { get; set; } = false;
 }

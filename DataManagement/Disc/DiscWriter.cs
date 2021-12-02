@@ -26,10 +26,10 @@ public class DiscWriter : IDiscWriter
         stream.Dispose();
     }
 
-    public void WriteRecordAtEnd(int saveArrayIndex, Record record)
+    public void WriteRecordAtEnd(int saveArrayIndex, Record record,bool lastInSeries = false)
     {
         using var writer = File.Open(_filePaths[saveArrayIndex],FileMode.Open,FileAccess.ReadWrite);
-        _arrayWriters[saveArrayIndex].WriteRecordAtEnd(record, writer);
+        _arrayWriters[saveArrayIndex].WriteRecordAtEnd(record, writer,lastInSeries);
     }
 
 

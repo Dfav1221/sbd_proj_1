@@ -9,4 +9,5 @@ public interface IDiscReader
     public bool IsArrayEmpty(int arrayNumber);
     void SetSectionSize(int arrayIndex, int newSectionSize, int newSectionSizeInBytes);
     public void ResetArray(int fileIndex);
+    public int BlancRecordsCount { get; set; }
 }

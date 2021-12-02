@@ -43,8 +43,9 @@ public class ArrayReader : IArrayReader
                 RecordSize = 0,
                 Mean = 0,
                 Eof = true,
-                Numbers = null
+                Numbers = null,
             };
+        var EoS = numbersAsString.Contains(';');
         numbersAsString = string.Concat(numbersAsString
             .Where(c => c == '\n' || char.IsDigit(c) || c == ' ')
         );
@@ -70,7 +71,8 @@ public class ArrayReader : IArrayReader
             RecordSize = 5,
             Mean = numbers.Mean(),
             Numbers = numbers,
-            Eof = !notEof
+            Eof = !notEof,
+            EoS = EoS
         };
     }
 

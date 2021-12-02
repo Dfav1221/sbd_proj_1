@@ -1,6 +1,4 @@
-﻿using System.IO;
-using Application;
-using DataManagement.Array;
+﻿using Application;
 using DataManagement.Disc;
 using DataManagement.Interfaces;
 
@@ -30,6 +28,11 @@ public class Repository : IRepository
     
     public Section ReadSection(int arrayNumber)
     {
+        if (arrayNumber == 1 && _discReader.BlancRecordsCount > 0)
+        {
+            _discReader.BlancRecordsCount--;
+            return null;
+        }
         var section = _discReader.ReadSection(arrayNumber);
         _discWriter.DeleteArraySection(arrayNumber, section.Size);
         _discReader.ResetArray(arrayNumber);
@@ -58,7 +61,11 @@ public class Repository : IRepository
     public void WriteSection(int saveArrayIndex,Section section)
     {
         _logger?.WriteCountInc();
-        section.Records.ForEach(r=>_discWriter.WriteRecordAtEnd(saveArrayIndex,r));
+        for (var i = 0; i < section.Records.Count-1; i++)
+        {
+            _discWriter.WriteRecordAtEnd(saveArrayIndex,section.Records[i]);
+        }
+        _discWriter.WriteRecordAtEnd(saveArrayIndex,section.Records[^1],true);
     }
 
     public void SetSectionSize(int arrayIndex, int newSectionSize, int newSectionSizeInBytes)
@@ -69,5 +76,15 @@ public class Repository : IRepository
     public bool IsArrayEmpty(int arrayNumber)
     {
         return _discReader.IsArrayEmpty(arrayNumber);
+    }
+
+    public void SetBlancRecords(int it)
+    {
+        _discReader.BlancRecordsCount = it;
+    }
+    public int GetBlancRecords()
+    {
+        _discReader.BlancRecordsCount--;
+        return _discReader.BlancRecordsCount ;
     }
 }

@@ -22,9 +22,10 @@ public class App
         }
     }
 
-    public static void Sort(List<string> files,StatisticLogger logger)
+    public static void Sort(List<string> files,int blancRecordsCount,StatisticLogger logger)
     {
         var repository = new Repository(files,logger);
+        repository.SetBlancRecords(blancRecordsCount);
         var saveArrayIndex = files.Count - 1;
         while (saveArrayIndex != -1)
         {
@@ -51,13 +52,24 @@ public class App
             }
             if (a.Records.Count == 0)
             {
+                if (b.Records.First().Mean == 0)
+                {
+                    //mergedSection.Size--;
+                    b.Records.RemoveAt(0);
+                    continue;
+                }
                 mergedSection.Records.Add(b.Records.First());
                 b.Records.RemoveAt(0);
                 continue;
             }
             var aMean = a.Records.First().Mean;
             var bMean = b.Records.First().Mean;
-
+            if (bMean == 0)
+            {
+                //mergedSection.Size--;
+                b.Records.RemoveAt(0);
+                continue;
+            }
             if (aMean > bMean)
             {
                 mergedSection.Records.Add(b.Records.First());
@@ -91,9 +103,11 @@ public class App
                 if (repository.IsArrayEmpty(i))
                     continue;
                 var arraySection = repository.ReadSection(i);
+                if (arraySection is null)
+                    continue;
                 newSection = MergeSections(newSection, arraySection);
             }
-            repository.SetSectionSize(saveArrayIndex, newSection.Size, newSection.SizeInBytes);
+            //repository.SetSectionSize(saveArrayIndex, newSection.Size, newSection.SizeInBytes);
             repository.WriteSection(saveArrayIndex, newSection);
             clearArrayIndex = repository.CheckWhichIsEmpty();
         } while (clearArrayIndex == -2);
@@ -121,6 +135,7 @@ public class App
                 builder.Append(number).Append(' ');
             }
 
+            builder.Append(';');
             builder.Append('\n');
         }
 

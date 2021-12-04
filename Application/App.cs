@@ -29,7 +29,7 @@ public class App
         var saveArrayIndex = files.Count - 1;
         while (saveArrayIndex != -1)
         {
-            saveArrayIndex = SortPhase(repository, saveArrayIndex, files.Count);
+            saveArrayIndex = SortPhase(repository, saveArrayIndex, files.Count,logger);
             logger.SortPhaseCountInc();
         }
     }
@@ -85,7 +85,7 @@ public class App
         return mergedSection;
     }
 
-    private static int SortPhase(Repository repository, int saveArrayIndex, int arrayNumber)
+    private static int SortPhase(Repository repository, int saveArrayIndex, int arrayNumber,StatisticLogger? logger)
     {
         int clearArrayIndex;
         do
@@ -105,10 +105,11 @@ public class App
                 var arraySection = repository.ReadSection(i);
                 if (arraySection is null)
                     continue;
+                logger?.ReadCountInc();
                 newSection = MergeSections(newSection, arraySection);
             }
-            //repository.SetSectionSize(saveArrayIndex, newSection.Size, newSection.SizeInBytes);
             repository.WriteSection(saveArrayIndex, newSection);
+            logger?.WriteCountInc();
             clearArrayIndex = repository.CheckWhichIsEmpty();
         } while (clearArrayIndex == -2);
 

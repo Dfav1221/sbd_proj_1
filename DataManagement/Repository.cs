@@ -36,7 +36,7 @@ public class Repository : IRepository
         var section = _discReader.ReadSection(arrayNumber);
         _discWriter.DeleteArraySection(arrayNumber, section.Size);
         _discReader.ResetArray(arrayNumber);
-        _logger?.ReadCountInc();
+        //_logger?.ReadCountInc();
 
         return section;
     }
@@ -60,7 +60,7 @@ public class Repository : IRepository
 
     public void WriteSection(int saveArrayIndex,Section section)
     {
-        _logger?.WriteCountInc();
+        //_logger?.WriteCountInc();
         for (var i = 0; i < section.Records.Count-1; i++)
         {
             _discWriter.WriteRecordAtEnd(saveArrayIndex,section.Records[i]);
